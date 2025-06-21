@@ -1,3 +1,5 @@
+"""API for all task operations - lists of tasks, task files etc."""
+
 from datetime import datetime, timezone
 from pathlib import Path
 
