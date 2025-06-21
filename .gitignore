@@ -5,8 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
-.ruff_cache
-.pytest_cache
+*_cache
 .done
 .todo
 
