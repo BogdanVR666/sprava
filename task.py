@@ -38,7 +38,7 @@ class Task:
 
 
 	def __str__(self) -> str:
-		return f"{self.text}\t{str(self.deadline or "someday")}"
+		return f"{self.text}\t{str(self.deadline or 'someday')}"
 
 
 	def __bool__(self) -> bool:
@@ -59,7 +59,7 @@ class TaskFile:
 
 		with open(self.filename, "w") as file:
 			for index, task in enumerate(task_list, 1):
-				file.write(str(index) + "\t" + str(task))
+				file.write(str(index) + "\t" + str(task) + "\n")
 
 
 	def read(self) -> list[Task]:
@@ -69,5 +69,8 @@ class TaskFile:
 		with open(self.filename, "r") as file:
 			for row in file:
 				args = row.strip().split("\t")[1:]
-				result.append(Task(args[0], Deadline(args[1])))
+				if args[1] != "someday":
+					result.append(Task(args[0], Deadline(args[1])))
+				else:
+					result.append(Task(args[0]))
 		return result
