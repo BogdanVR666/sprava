@@ -1,21 +1,32 @@
 """API for all task operations - lists of tasks, task files etc."""
-
 from datetime import datetime, timezone
-from pathlib import Path
+from typing import Self
 
 
 class Deadline:
+	# self.date завжди має бути type(datetime)
 	_ZERO_DAY = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
-	def __init__(self, date: datetime = datetime.now()):
-		self.date = date
+	def __init__(self, date: datetime|str|None = None):
+		if isinstance(date, datetime):
+			self.date = date
+		elif isinstance(date, str):
+			self.date = datetime.fromisoformat(date)
+		elif date is None:
+			self.date = datetime.now()
+	
+
+	def __str__(self) -> str:
+		return str(self.date)
 
 
-	def done(self) -> None:
+	def done(self) -> Self:
 		self.date = Deadline._ZERO_DAY
+		return self
 
 
+	@property
 	def is_done(self) -> bool:
 		return self.date == Deadline._ZERO_DAY 
 
@@ -26,50 +37,37 @@ class Task:
 		self.deadline = deadline
 
 
+	def __str__(self) -> str:
+		return f"{self.text}\t{str(self.deadline or "someday")}"
+
+
 	def __bool__(self) -> bool:
-		return bool(bool(self.text) \
-			+ bool(self.deadline))
+		# AttributeError тут бути не може
+		return self.deadline is None or not self.deadline.is_done
 
 
 class TaskFile:
 	def __init__(self, filename: str):
+		"""TaskFile(".todo")"""
 		self.filename = filename
-		Path(filename).touch() # creates file if not exists 
 
 
-	def write_task(self, task: Task) -> None:
-		with open(self.filename, "a") as file:
-			file.write(str(task))
+	def write(self, task_list: list[Task]) -> None:
+		"""
+		TaskFile(name).write([Task(...), Task(...), ...]) -> file with tasks
+		"""
+
+		with open(self.filename, "w") as file:
+			for index, task in enumerate(task_list, 1):
+				file.write(str(index) + "\t" + str(task))
 
 
 	def read(self) -> list[Task]:
+		"""TaskFile(name).read() -> [Task(...), Task(...), ...]"""
+
 		result = list()
 		with open(self.filename, "r") as file:
 			for row in file:
 				args = row.strip().split("\t")[1:]
-				result.append(Task(args[0], Deadline()))
+				result.append(Task(args[0], Deadline(args[1])))
 		return result
-
-
-class TaskList:
-	def __init__(self, file: TaskFile = TaskFile(".todo")):
-		self.file = file
-		self.tasks = file.read()
-
-
-	def append(self, task: Task) -> None:
-		if task not in self.tasks:
-			self.tasks.append(task)
-
-
-	def remove(self, task: Task) -> None:
-		self.tasks.remove(task)
-
-
-	def upload(self) -> None:
-		if self.file:
-			for task in self.tasks:
-				self.file.write_task(task)
-
-
-

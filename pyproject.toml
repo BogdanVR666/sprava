@@ -1,11 +1,20 @@
 [project]
 name = "todo"
 version = "0.1.0"
-description = "Add your description here"
+description = "Simple git-like cli task tracker"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.2.1",
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"] 
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.1",
+    "pytest>=8.4.1",
+    "ruff>=0.12.0",
+]
 
