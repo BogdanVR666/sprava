@@ -1,14 +1,15 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[doc]
 build/
 dist/
 wheels/
 *.egg-info
 *_cache
-.done
-.todo
 
 # Virtual environments
 .venv
-.python-version
+
+# App generated
+*.todo
+*.done
