@@ -7,7 +7,7 @@ uv tool install https://github.com/BogdanVR666/sprava.git
 ## Uninstalation 
 
 ```bash
-uv tool uninstall strava
+uv tool uninstall sprava
 ```
 
 ## Usage 
