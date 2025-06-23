@@ -3,47 +3,50 @@ from datetime import datetime, timezone
 from typing import Self
 
 
-class Deadline:
-	# self.date завжди має бути type(datetime)
+class Task:
 	_ZERO_DAY = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
-	def __init__(self, date: datetime|str|None = None):
-		if isinstance(date, datetime):
-			self.date = date
-		elif isinstance(date, str):
-			self.date = datetime.fromisoformat(date)
-		elif date is None:
-			self.date = datetime.now()
-	
+	def __init__(
+			self, text: str, 
+			deadline: datetime|str|None = None,
+			task_id: int = 1,
+		):
+		self.text = text
+		self.task_id = task_id
+
+		if isinstance(deadline, datetime):
+			self.deadline = deadline
+		elif isinstance(deadline, str):
+			self.deadline = datetime.fromisoformat(deadline)
+		elif deadline is None:
+			self.deadline = None
+
 
 	def __str__(self) -> str:
-		return str(self.date)
+		if self.deadline and sum(tuple(self.deadline.timetuple())[3:6]):
+			date = str(self.deadline)
+		elif self.deadline:
+			date = str(self.deadline).split()[0]
+		else:
+			date = "someday"
+
+		return f"{self.task_id}\t{self.text}\t{date}"
+
+
+	def __bool__(self) -> bool:
+		# AttributeError тут бути не може
+		return self.deadline is None or not self.is_done
 
 
 	def done(self) -> Self:
-		self.date = Deadline._ZERO_DAY
+		self.deadline = Task._ZERO_DAY
 		return self
 
 
 	@property
 	def is_done(self) -> bool:
-		return self.date == Deadline._ZERO_DAY 
-
-
-class Task:
-	def __init__(self, text: str, deadline: Deadline|None = None):
-		self.text = text
-		self.deadline = deadline
-
-
-	def __str__(self) -> str:
-		return f"{self.text}\t{str(self.deadline or 'someday')}"
-
-
-	def __bool__(self) -> bool:
-		# AttributeError тут бути не може
-		return self.deadline is None or not self.deadline.is_done
+		return self.deadline == Task._ZERO_DAY 
 
 
 class TaskFile:
@@ -58,19 +61,52 @@ class TaskFile:
 		"""
 
 		with open(self.filename, "w") as file:
-			for index, task in enumerate(task_list, 1):
-				file.write(str(index) + "\t" + str(task) + "\n")
+			for task in task_list:
+				file.write(str(task) + "\n")
 
 
 	def read(self) -> list[Task]:
 		"""TaskFile(name).read() -> [Task(...), Task(...), ...]"""
 
 		result = list()
-		with open(self.filename, "r") as file:
-			for row in file:
-				args = row.strip().split("\t")[1:]
-				if args[1] != "someday":
-					result.append(Task(args[0], Deadline(args[1])))
-				else:
-					result.append(Task(args[0]))
+		try:
+			with open(self.filename, "r") as file:
+				for row in file:
+					args = row.strip().split("\t")
+					if args[2] != "someday":
+						task = Task(
+							args[1],
+							datetime.fromisoformat(args[2]),
+							task_id = int(args[0]),
+						)
+					else:
+						task = Task(args[1], task_id = int(args[0]))
+					result.append(task)
+		except FileNotFoundError: pass
 		return result
+
+
+	def add(self, task: Task) -> Task|None:
+		"""TaskFile(name).add(Task(...)) -> add task to end or do nothing"""
+		
+		tasks = self.read()
+
+		for i in tasks:
+			if task.text == i.text:
+				return None
+
+		with open(self.filename, "a") as file:
+			task_edit = Task(task.text, task.deadline, task_id=len(tasks)+1)
+			file.write(str(task_edit) + "\n")
+			return task_edit
+
+
+	def remove(self, task_id: int) -> None:
+		"""TaskFile(name).remove(int) -> removes task from file"""
+		tasks = self.read()
+
+		for i in tasks:
+			if task_id == i.task_id:
+				tasks.remove(i)
+				self.write(tasks)
+				break
