@@ -3,7 +3,7 @@ import click
 from rich.table import Table
 from rich.console import Console
 from rich import box
-from task import Task, TaskFile
+from .task import Task, TaskFile
 
 
 console = Console()
@@ -53,7 +53,7 @@ def list(recursive):
 @cli.command()
 @click.option("--id", help="index of task to done")
 def done(**kwargs):
-	task_id = kwargs.get("id")
+	task_id = int(kwargs.get("id"))
 	tasks = TaskFile(todo_filename)
 	dones = TaskFile(done_filename)
 	for task in tasks.read():
@@ -74,7 +74,8 @@ def remove(**kwargs):
 			tasks.remove(task_id)
 			console.print("Task removed")
 			break
-	console.print(f"Task with id {task_id} not found")
+	else:
+		console.print(f"Task with id {task_id} not found")
 
 
 

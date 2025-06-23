@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "todo"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simple git-like cli task tracker"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-todo = "cli:cli"
+todo = "todo.cli:cli"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"] 
